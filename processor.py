@@ -1,46 +1,33 @@
-from typing import List, Tuple
+import json
+from typing import Any, Dict, List
 
-class DataProcessor:
-    def __init__(self, data: List[Tuple[int, float]]) -> None:
-        """
-        Initializes the DataProcessor with a list of data.
-        
-        :param data: A list of tuples where each tuple contains an integer and a float.
-        """
-        self.data = data
+class GameProcessor:
+    def __init__(self, game_data: List[Dict[str, Any]]) -> None:
+        self.game_data = game_data
 
-    def average(self) -> float:
-        """
-        Calculates the average of the float values in the data.
-        
-        :return: The average as a float.
-        """  
-        if not self.data:
-            return 0.0
-        total = sum(value for _, value in self.data)
-        return total / len(self.data)
+    def process(self) -> List[Dict[str, Any]]:
+        processed_data = []
+        for game in self.game_data:
+            processed_game = self._process_game(game)
+            processed_data.append(processed_game)
+        return processed_data
 
-    def filter_above_threshold(self, threshold: float) -> List[Tuple[int, float]]:
-        """
-        Filters the data for entries where the float value exceeds the threshold.
-        
-        :param threshold: The threshold value to filter by.
-        :return: A list of tuples that exceed the threshold.
-        """  
-        return [entry for entry in self.data if entry[1] > threshold]
+    def _process_game(self, game: Dict[str, Any]) -> Dict[str, Any]:
+        # Transform the game's title to uppercase
+        game['title'] = game['title'].upper()
+        # Add some fictional data for processing demonstration
+        game['is_popular'] = self._is_popular(game)
+        return game
 
-    def sum_values(self) -> float:
-        """
-        Sums up the float values in the data.
-        
-        :return: The total sum as a float.
-        """  
-        return sum(value for _, value in self.data)  
+    def _is_popular(self, game: Dict[str, Any]) -> bool:
+        # A game is considered popular if its rating is above 8
+        return game.get('rating', 0) > 8
 
-# Example usage:
 if __name__ == '__main__':
-    data = [(1, 10.5), (2, 20.1), (3, 5.5)]
-    processor = DataProcessor(data)
-    print(processor.average())  # Output average
-    print(processor.filter_above_threshold(15.0))  # Output filtered data
-    print(processor.sum_values())  # Output total sum
+    sample_games = [
+        {'title': 'Game One', 'rating': 9},
+        {'title': 'Game Two', 'rating': 7},
+    ]
+    processor = GameProcessor(sample_games)
+    results = processor.process()
+    print(json.dumps(results, indent=2))
