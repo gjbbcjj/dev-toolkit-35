@@ -1,28 +1,34 @@
 import json
-from pathlib import Path
 
-class ConfigLoader:
-    def __init__(self, default_config_path, user_config_path):
-        self.default_config_path = Path(default_config_path)
-        self.user_config_path = Path(user_config_path)
-        self.config = self.load_config()
+class Config:
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.config_data = self.load_config()
 
     def load_config(self):
-        default_config = self.load_json(self.default_config_path)
-        user_config = self.load_json(self.user_config_path)
-        return self.merge_configs(default_config, user_config)
-
-    def load_json(self, path):
-        if path.exists():
-            with open(path) as file:
+        try:
+            with open(self.filepath, 'r') as file:
                 return json.load(file)
-        return {}
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Error loading config: {e}")
+            return {}
 
-    def merge_configs(self, default, user):
-        merged = default.copy()
-        merged.update(user)
-        return merged
+    def get(self, key, default=None):
+        return self.config_data.get(key, default)
 
+    def set(self, key, value):
+        self.config_data[key] = value
+        self.save_config()
+
+    def save_config(self):
+        try:
+            with open(self.filepath, 'w') as file:
+                json.dump(self.config_data, file, indent=4)
+        except IOError as e:
+            print(f"Error saving config: {e}")
+
+# Example usage
 if __name__ == '__main__':
-    loader = ConfigLoader('default_config.json', 'user_config.json')
-    print(loader.config)
+    config = Config('game_config.json')
+    print(config.get('difficulty', 'normal'))
+    config.set('difficulty', 'hard')
