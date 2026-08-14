@@ -1,26 +1,39 @@
 import logging
-from logging.handlers import RotatingFileHandler
 
-# Define logger setup function
 
-def setup_logger(log_file='app.log', max_bytes=10*1024*1024, backup_count=5):
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
+class Logger:
+    """Class to handle logging for the application."""
 
-    # Create a rotating file handler
-    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
-    handler.setLevel(logging.DEBUG)
+    def __init__(self, name: str, level: int = logging.INFO) -> None:
+        """Initialize the logger with a specific name and log level."""
+        self.logger = logging.getLogger(name)
+        self.logger.setLevel(level)
+        self._setup_handler()
 
-    # Create a formatter and set it for the handler
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
+    def _setup_handler(self) -> None:
+        """Set up console and file handlers for logging."""
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        ch.setFormatter(formatter)
+        self.logger.addHandler(ch)
 
-    # Add the handler to the logger
-    logger.addHandler(handler)
+    def debug(self, message: str) -> None:
+        """Log a message with DEBUG level."""
+        self.logger.debug(message)
 
-    return logger
+    def info(self, message: str) -> None:
+        """Log a message with INFO level."""
+        self.logger.info(message)
 
-# Example usage
-if __name__ == '__main__':
-    logger = setup_logger()
-    logger.info('Logger setup complete.')
+    def warning(self, message: str) -> None:
+        """Log a message with WARNING level."""
+        self.logger.warning(message)
+
+    def error(self, message: str) -> None:
+        """Log a message with ERROR level."""
+        self.logger.error(message)
+
+    def critical(self, message: str) -> None:
+        """Log a message with CRITICAL level."""
+        self.logger.critical(message)
