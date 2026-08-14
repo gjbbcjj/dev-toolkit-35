@@ -1,34 +1,25 @@
 import time
-import numpy as np
+import requests
+from requests.exceptions import RequestException
 
-class Game:
-    def __init__(self, players):
-        self.players = players
-        self.scores = np.zeros(len(players))
-
-    def play_round(self):
-        for idx, player in enumerate(self.players):
-            # Simulate player action
-            action_time = time.perf_counter()
-            self.scores[idx] += player.take_action()
-            action_duration = time.perf_counter() - action_time
-            self.log_action_time(idx, action_duration)
-
-    def log_action_time(self, player_idx, duration):
-        print(f'Player {player_idx} took {duration:.4f} seconds.')
-
-    def get_scores(self):
-        return self.scores
-
-class Player:
-    def take_action(self):
-        # Simulate a time-consuming action
-        time.sleep(np.random.rand() * 0.1)
-        return np.random.randint(1, 10)
+def retry_request(url, max_retries=3, delay=1):
+    """Perform a GET request with retry logic."""
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an error for bad responses
+            return response.json()  # Return JSON data if successful
+        except RequestException as e:
+            print(f'Attempt {attempt + 1} failed: {e}')
+            if attempt < max_retries - 1:
+                time.sleep(delay)  # Wait before retrying
+            else:
+                raise  # Reraise the last exception if max retries reached
 
 if __name__ == '__main__':
-    players = [Player() for _ in range(3)]
-    game = Game(players)
-    for _ in range(5):
-        game.play_round()
-    print('Final scores:', game.get_scores())
+    url = 'https://api.example.com/data'
+    try:
+        data = retry_request(url)
+        print('Data retrieved:', data)
+    except Exception as e:
+        print('Failed to retrieve data:', e)
