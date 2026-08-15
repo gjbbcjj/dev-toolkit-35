@@ -1,41 +1,27 @@
 import re
 
+class InputValidator:
+    def __init__(self):
+        self.patterns = {
+            'username': re.compile(r'^[a-zA-Z0-9_]{3,15}$'),
+            'email': re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$'),
+            'password': re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$')
+        }
 
-def is_valid_username(username: str) -> bool:
-    """
-    Validates the username for gaming accounts.
-    Criteria:
-    - Length: 3 to 16 characters
-    - Characters: Alphanumeric and underscores only
-    """
-    pattern = r'^[a-zA-Z0-9_]{3,16}$'
-    return bool(re.match(pattern, username))
+    def validate_username(self, username):
+        return bool(self.patterns['username'].match(username))
 
+    def validate_email(self, email):
+        return bool(self.patterns['email'].match(email))
 
-def is_valid_email(email: str) -> bool:
-    """
-    Validates the email format for gaming accounts.
-    Criteria:
-    - Contains one '@' symbol
-    - Valid domain name
-    """
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return bool(re.match(pattern, email))
+    def validate_password(self, password):
+        return bool(self.patterns['password'].match(password))
 
+    def validate_all(self, username, email, password):
+        return (self.validate_username(username) and
+                self.validate_email(email) and
+                self.validate_password(password))
 
-def is_valid_score(score: int) -> bool:
-    """
-    Validates if the score is within the acceptable range.
-    Valid range is from 0 to 1000.
-    """
-    return 0 <= score <= 1000
-
-
-def is_valid_game_id(game_id: str) -> bool:
-    """
-    Validates the game ID format.
-    Criteria:
-    - Must be 8 characters
-    - Alphanumeric characters only
-    """
-    return len(game_id) == 8 and game_id.isalnum()
+# Usage Example:
+# validator = InputValidator()
+# print(validator.validate_all('user_123', 'user@example.com', 'password1'))  # True
