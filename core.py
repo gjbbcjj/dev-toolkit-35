@@ -1,25 +1,25 @@
-import time
-import requests
-from requests.exceptions import RequestException
+import sys
+from validators import validate_user_input
 
-def retry_request(url, max_retries=3, delay=1):
-    """Perform a GET request with retry logic."""
-    for attempt in range(max_retries):
+def main_loop():
+    while True:
         try:
-            response = requests.get(url)
-            response.raise_for_status()  # Raise an error for bad responses
-            return response.json()  # Return JSON data if successful
-        except RequestException as e:
-            print(f'Attempt {attempt + 1} failed: {e}')
-            if attempt < max_retries - 1:
-                time.sleep(delay)  # Wait before retrying
+            user_input = input('Enter a command: ')
+            if validate_user_input(user_input):
+                process_command(user_input)
             else:
-                raise  # Reraise the last exception if max retries reached
+                print('Invalid input, please try again.')
+        except (KeyboardInterrupt, SystemExit):
+            print('\nExiting the application. Goodbye!')
+            sys.exit(0)
+        except Exception as e:
+            print(f'An error occurred: {e}')
+
+
+def process_command(command):
+    # Here we would handle different commands
+    print(f'Processing command: {command}')
+
 
 if __name__ == '__main__':
-    url = 'https://api.example.com/data'
-    try:
-        data = retry_request(url)
-        print('Data retrieved:', data)
-    except Exception as e:
-        print('Failed to retrieve data:', e)
+    main_loop()
