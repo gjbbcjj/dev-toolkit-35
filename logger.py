@@ -1,39 +1,32 @@
 import logging
 
-
-class Logger:
-    """Class to handle logging for the application."""
-
-    def __init__(self, name: str, level: int = logging.INFO) -> None:
-        """Initialize the logger with a specific name and log level."""
+class CustomLogger:
+    def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-        self.logger.setLevel(level)
-        self._setup_handler()
-
-    def _setup_handler(self) -> None:
-        """Set up console and file handlers for logging."""
-        ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        ch.setFormatter(formatter)
-        self.logger.addHandler(ch)
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
 
-    def debug(self, message: str) -> None:
-        """Log a message with DEBUG level."""
+    def debug(self, message: str):
         self.logger.debug(message)
 
-    def info(self, message: str) -> None:
-        """Log a message with INFO level."""
+    def info(self, message: str):
         self.logger.info(message)
 
-    def warning(self, message: str) -> None:
-        """Log a message with WARNING level."""
+    def warning(self, message: str):
         self.logger.warning(message)
 
-    def error(self, message: str) -> None:
-        """Log a message with ERROR level."""
+    def error(self, message: str):
         self.logger.error(message)
 
-    def critical(self, message: str) -> None:
-        """Log a message with CRITICAL level."""
+    def critical(self, message: str):
         self.logger.critical(message)
+
+# Example usage
+if __name__ == '__main__':
+    logger = CustomLogger('GameLogger')
+    logger.info('Game started')
+    logger.warning('Low health warning')
+    logger.error('Game crashed')
