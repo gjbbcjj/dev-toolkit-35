@@ -1,38 +1,24 @@
-from typing import Any
+class GameError(Exception):
+    """Base class for game-related exceptions."""
+    pass
 
-class CustomError(Exception):
-    """
-    Exception raised for custom application errors.
-    """
-    def __init__(self, message: str, code: int = 500) -> None:
-        """
-        Initialize CustomError with message and code.
-        """
+class InvalidInputError(GameError):
+    """Raised when the input is invalid."""
+    def __init__(self, message):
         super().__init__(message)
-        self.message = message
-        self.code = code
 
-    def __str__(self) -> str:
-        return f'CustomError({self.code}): {self.message}'
+class PlayerNotFoundError(GameError):
+    """Raised when a player is not found in the game."""
+    def __init__(self, player_id):
+        super().__init__(f'Player with ID {player_id} not found.')
 
-class NotFoundError(CustomError):
-    """
-    Exception raised when an item is not found.
-    """
-    def __init__(self, item: str) -> None:
-        """
-        Initialize NotFoundError for a specific item.
-        """
-        message = f'{item} not found.'
-        super().__init__(message, code=404)
+class LevelNotUnlockedError(GameError):
+    """Raised when trying to access a level that is not unlocked."""
+    def __init__(self, level_num):
+        super().__init__(f'Level {level_num} is not unlocked.')
 
-class ValidationError(CustomError):
-    """
-    Exception raised for validation errors.
-    """
-    def __init__(self, errors: Any) -> None:
-        """
-        Initialize ValidationError with a list of errors.
-        """
-        message = f'Validation errors: {errors}'
-        super().__init__(message, code=400)
+class InsufficientResourcesError(GameError):
+    """Raised when there are not enough resources for an action."""
+    def __init__(self, resource_name, required, available):
+        super().__init__(f'Insufficient {resource_name}. Needed: {required}, Available: {available}.')
+
