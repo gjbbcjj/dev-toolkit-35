@@ -1,32 +1,25 @@
 import logging
+from logging.handlers import RotatingFileHandler
 
-class CustomLogger:
-    def __init__(self, name: str):
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-        self.logger.addHandler(console_handler)
+# Logger configuration function
 
-    def debug(self, message: str):
-        self.logger.debug(message)
+def setup_logger(log_file='game.log', max_bytes=5*1024*1024, backup_count=3):
+    """
+    Set up a logger that rotates log files when they reach a certain size.
+    :param log_file: File name for the log file
+    :param max_bytes: Maximum file size in bytes before rotation
+    :param backup_count: Number of backup files to keep
+    """
+    logger = logging.getLogger('GameLogger')
+    logger.setLevel(logging.DEBUG)
 
-    def info(self, message: str):
-        self.logger.info(message)
+    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
 
-    def warning(self, message: str):
-        self.logger.warning(message)
+    logger.addHandler(handler)
+    return logger
 
-    def error(self, message: str):
-        self.logger.error(message)
-
-    def critical(self, message: str):
-        self.logger.critical(message)
-
-# Example usage
 if __name__ == '__main__':
-    logger = CustomLogger('GameLogger')
-    logger.info('Game started')
-    logger.warning('Low health warning')
-    logger.error('Game crashed')
+    logger = setup_logger()
+    logger.debug('Logger is set up and ready to go!')
