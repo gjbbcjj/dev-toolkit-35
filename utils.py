@@ -1,28 +1,28 @@
 import time
 import requests
 
-class NetworkError(Exception):
-    pass
 
-def retry_network_operation(max_retries=3, backoff_factor=1):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            retries = 0
-            while retries < max_retries:
-                try:
-                    return func(*args, **kwargs)
-                except (requests.ConnectionError, requests.Timeout) as e:
-                    retries += 1
-                    wait_time = backoff_factor * (2 ** (retries - 1))
-                    print(f"Retrying in {wait_time} seconds...")
-                    time.sleep(wait_time)
-                    if retries == max_retries:
-                        raise NetworkError(f'Operation failed after {max_retries} attempts') from e
-        return wrapper
-    return decorator
+def retry_request(url, max_retries=3, delay=2, backoff=2):
+    """Perform a network request with retry logic."""
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # Raise an error for bad status codes
+            return response.json()  # Return the JSON response if successful
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            attempt += 1
+            time.sleep(delay)
+            delay *= backoff  # Increase delay exponentially
+    raise Exception(f"Failed to fetch data from {url} after {max_retries} attempts.")
 
-@retry_network_operation(max_retries=5, backoff_factor=2)
-def fetch_data(url):
-    response = requests.get(url)
-    response.raise_for_status()  # Raise an error for bad responses
-    return response.json()
+
+# Example of using the retry logic
+if __name__ == '__main__':
+    url = 'https://api.example.com/data'
+    try:
+        data = retry_request(url)
+        print(data)
+    except Exception as e:
+        print(e)
