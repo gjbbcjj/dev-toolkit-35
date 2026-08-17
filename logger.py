@@ -1,25 +1,42 @@
 import logging
-from logging.handlers import RotatingFileHandler
 
-# Logger configuration function
+# Configure the logger settings
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
-def setup_logger(log_file='game.log', max_bytes=5*1024*1024, backup_count=3):
-    """
-    Set up a logger that rotates log files when they reach a certain size.
-    :param log_file: File name for the log file
-    :param max_bytes: Maximum file size in bytes before rotation
-    :param backup_count: Number of backup files to keep
-    """
-    logger = logging.getLogger('GameLogger')
-    logger.setLevel(logging.DEBUG)
+class Logger:
+    """ A simple logger class for the gaming toolkit. """
 
-    handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
+    @staticmethod
+    def debug(message):
+        logging.debug(message)
 
-    logger.addHandler(handler)
-    return logger
+    @staticmethod
+    def info(message):
+        logging.info(message)
 
+    @staticmethod
+    def warning(message):
+        logging.warning(message)
+
+    @staticmethod
+    def error(message):
+        logging.error(message)
+
+    @staticmethod
+    def critical(message):
+        logging.critical(message)
+
+    @staticmethod
+    def set_level(level):
+        """ Set the logging level. """
+        logging.getLogger().setLevel(level)  
+
+# Example usage
 if __name__ == '__main__':
-    logger = setup_logger()
-    logger.debug('Logger is set up and ready to go!')
+    Logger.info('Logger initialized')
+    Logger.debug('This is a debug message')
+    Logger.error('This is an error message')
