@@ -3,22 +3,33 @@ class GameError(Exception):
     pass
 
 class InvalidInputError(GameError):
-    """Raised when the input is invalid."""
-    def __init__(self, message):
+    """Exception raised for invalid input in the game."""
+    def __init__(self, message: str) -> None:
         super().__init__(message)
+        self.message = message
 
-class PlayerNotFoundError(GameError):
-    """Raised when a player is not found in the game."""
-    def __init__(self, player_id):
-        super().__init__(f'Player with ID {player_id} not found.')
+class GameNotFoundError(GameError):
+    """Exception raised when a game is not found."""
+    def __init__(self, game_id: int) -> None:
+        super().__init__(f'Game not found: {game_id}')
+        self.game_id = game_id
 
-class LevelNotUnlockedError(GameError):
-    """Raised when trying to access a level that is not unlocked."""
-    def __init__(self, level_num):
-        super().__init__(f'Level {level_num} is not unlocked.')
+class PlayerError(GameError):
+    """Base class for player-related exceptions."""
+    pass
 
-class InsufficientResourcesError(GameError):
-    """Raised when there are not enough resources for an action."""
-    def __init__(self, resource_name, required, available):
-        super().__init__(f'Insufficient {resource_name}. Needed: {required}, Available: {available}.')
+class PlayerNotFoundError(PlayerError):
+    """Exception raised when a specified player is not found."""
+    def __init__(self, player_id: int) -> None:
+        super().__init__(f'Player not found: {player_id}')
+        self.player_id = player_id
 
+class MoveError(GameError):
+    """Exception raised for errors during a player move."""
+    pass
+
+class InvalidMoveError(MoveError):
+    """Exception raised for an invalid move made by a player."""
+    def __init__(self, move: str) -> None:
+        super().__init__(f'Invalid move: {move}')
+        self.move = move
