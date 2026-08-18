@@ -1,28 +1,30 @@
 import random
-import time
+import sys
 
+class Game:
+    def __init__(self):
+        self.running = True
 
-def random_seed(seed: int) -> None:
-    """Set the random seed for reproducibility."""
-    random.seed(seed)
+    def start(self):
+        print('Game started!')
+        while self.running:
+            user_input = input('Enter a number (1-10) or type "exit" to quit: ')
+            self.process_input(user_input)
 
+    def process_input(self, user_input):
+        if user_input.lower() == 'exit':
+            self.running = False
+            print('Exiting game...')
+        else:
+            try:
+                number = int(user_input)
+                if 1 <= number <= 10:
+                    print(f'You entered: {number}')
+                else:
+                    print('Input should be between 1 and 10.')
+            except ValueError:
+                print('Invalid input; please enter a number.')
 
-def roll_dice(sides: int = 6, rolls: int = 1) -> list:
-    """Roll a dice with the specified number of sides a given number of times."""
-    return [random.randint(1, sides) for _ in range(rolls)]
-
-
-def wait_for_seconds(seconds: float) -> None:
-    """Pause execution for a given number of seconds."""
-    time.sleep(seconds)
-
-
-def generate_random_string(length: int = 10) -> str:
-    """Generate a random alphanumeric string of specified length."""
-    characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-    return ''.join(random.choice(characters) for _ in range(length))
-
-
-def limit_range(value: int, min_value: int, max_value: int) -> int:
-    """Limit a value to be within a specified range."""
-    return max(min(value, max_value), min_value)
+if __name__ == '__main__':
+    game = Game()
+    game.start()
