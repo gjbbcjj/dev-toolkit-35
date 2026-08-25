@@ -1,38 +1,51 @@
-import random
+"""Helper functions for common gaming operations."""
+
 import math
+import random
+from typing import Tuple, List, Any
 
-def generate_random_number(min_value: int, max_value: int) -> int:
-    """
-    Generate a random integer between min_value and max_value.
-    """
-    return random.randint(min_value, max_value)
+def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> float:
+    """Calculate Euclidean distance between two points."""
+    dx = pos2[0] - pos1[0]
+    dy = pos2[1] - pos1[1]
+    return math.sqrt(dx * dx + dy * dy)
 
+def clamp(value: float, min_val: float, max_val: float) -> float:
+    """Restrict value to the range [min_val, max_val]."""
+    return max(min_val, min(max_val, value))
 
-def calculate_distance(point_a: tuple, point_b: tuple) -> float:
-    """
-    Calculate the Euclidean distance between two points.
-    """
-    return math.sqrt((point_b[0] - point_a[0]) ** 2 + (point_b[1] - point_a[1]) ** 2)
+def lerp(a: float, b: float, t: float) -> float:
+    """Linear interpolation from a to b by factor t."""
+    return a + (b - a) * t
 
+def weighted_choice(options: List[Tuple[Any, float]]) -> Any:
+    """Return random item weighted by second tuple element."""
+    total = sum(w for _, w in options)
+    r = random.random() * total
+    upto = 0.0
+    for item, weight in options:
+        if upto + weight >= r:
+            return item
+        upto += weight
+    return options[-1][0]
 
-def is_within_bounds(position: tuple, bounds: tuple) -> bool:
-    """
-    Check if a given position is within specified bounds.
-    """
-    return bounds[0] <= position[0] <= bounds[2] and bounds[1] <= position[1] <= bounds[3]
+def format_score(score: int) -> str:
+    """Return score as string with commas."""
+    return f"{score:,}"
 
+def get_exp_for_level(level: int) -> int:
+    """Compute experience needed for next level."""
+    return int(100 * level ** 1.5)
 
-def clamp_value(value: float, min_value: float, max_value: float) -> float:
-    """
-    Clamp a value to be within min_value and max_value.
-    """
-    return max(min_value, min(value, max_value))
+def rects_overlap(r1: Tuple[float, float, float, float], r2: Tuple[float, float, float, float]) -> bool:
+    """Detect overlap of two rectangles (x, y, width, height)."""
+    x1, y1, w1, h1 = r1
+    x2, y2, w2, h2 = r2
+    return (x1 < x2 + w2 and x1 + w1 > x2 and
+            y1 < y2 + h2 and y1 + h1 > y2)
 
-
-def random_choice_from_list(items: list) -> any:
-    """
-    Return a random element from a non-empty list.
-    """
-    if not items:
-        raise ValueError('The list is empty')
-    return random.choice(items)
+def pick_event(events: List[str]) -> str:
+    """Select random event from list."""
+    if not events:
+        return ""
+    return random.choice(events)
