@@ -1,45 +1,34 @@
-# Dev Toolkit 35
+# dev-toolkit-35
 
-Dev Toolkit 35 is a comprehensive suite of utilities designed to streamline the development process for Python projects. This toolkit simplifies task automation, code quality checks, and environment management, allowing developers to focus on building rather than configuring.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+dev-toolkit-35 is a Python toolkit designed for indie game developers building 2D experiences. It provides practical utilities that handle asset processing and content generation to speed up development.
 
 ## Features
-- **Task Automation**: Create and manage scripts to automate repetitive tasks such as testing, building, and deployment using simple configuration files.
-- **Code Quality Checks**: Integrate tools like Flake8 and Black directly into your workflow to ensure your code adheres to best practices and style guidelines.
-- **Environment Management**: Easily manage virtual environments and dependencies with built-in commands for creating and switching between projects with different configurations.
-- **Customizable Templates**: Quickly scaffold new projects using customizable templates tailored to specific frameworks or structures, reducing setup time significantly.
+- Procedural map generator using simplex noise to create varied terrain and layouts
+- Sprite atlas packer that combines images into efficient sheets while preserving metadata
+- Game loop profiler for measuring CPU usage and identifying slow functions during playtests
+- Batch asset converter supporting common formats like PNG, JPG, and TGA for game imports
 
 ## Installation
 
-To install Dev Toolkit 35, clone the repository and set up the required virtual environment:
-
+Install the package directly with pip:
 ```bash
-git clone https://github.com/YourUsername/dev-toolkit-35.git
+pip install dev-toolkit-35
+```
+
+Clone and install from source:
+```bash
+git clone https://github.com/Developer/dev-toolkit-35.git
 cd dev-toolkit-35
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Basic Usage
+```python
+from dev_toolkit_35 import MapGenerator
 
-Once installed, you can start using Dev Toolkit 35 by invoking the command line interface. Here’s an example of automating a simple task:
-
-```bash
-# Create a new automation script
-dtk create task my_task
-
-# Run the automation script
-dtk run my_task
+generator = MapGenerator(128, 128, seed=42)
+level = generator.generate()
+level.export("level.json")
 ```
-
-By using `dtk create`, you can configure various parameters and define actions. Check the full documentation for further commands and options.
-
-## License
-
-![License: MIT](https://img.shields.io/badge/license-MIT-green)
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-Dev Toolkit 35 aims to optimize your development experience and elevate your project's execution, making it an essential addition to your software toolbox.
