@@ -1,35 +1,69 @@
-class GameError(Exception):
-    """Base class for game-related exceptions."""
+class ValidationError(Exception):
+    """Base class for input validation errors in gaming toolkit."""
     pass
 
-class InvalidInputError(GameError):
-    """Exception raised for invalid input in the game."""
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-        self.message = message
-
-class GameNotFoundError(GameError):
-    """Exception raised when a game is not found."""
-    def __init__(self, game_id: int) -> None:
-        super().__init__(f'Game not found: {game_id}')
-        self.game_id = game_id
-
-class PlayerError(GameError):
-    """Base class for player-related exceptions."""
+class InvalidCommandError(ValidationError):
+    """Exception for unrecognized or malformed commands."""
     pass
 
-class PlayerNotFoundError(PlayerError):
-    """Exception raised when a specified player is not found."""
-    def __init__(self, player_id: int) -> None:
-        super().__init__(f'Player not found: {player_id}')
-        self.player_id = player_id
+class InvalidParameterError(ValidationError):
+    """Exception for invalid command parameters."""
+    def __init__(self, param, reason):
+        self.param = param
+        self.reason = reason
+        super().__init__(f"{param}: {reason}")
 
-class MoveError(GameError):
-    """Exception raised for errors during a player move."""
-    pass
+class OutOfBoundsError(ValidationError):
+    """Exception for values outside allowed range."""
+    def __init__(self, value, minv, maxv):
+        self.value = value
+        super().__init__(f"{value} not in [{minv}, {maxv}]")
 
-class InvalidMoveError(MoveError):
-    """Exception raised for an invalid move made by a player."""
-    def __init__(self, move: str) -> None:
-        super().__init__(f'Invalid move: {move}')
-        self.move = move
+def validate_input(command, params):
+    """Perform input validation for game commands."""
+    valid_cmds = {"move", "attack", "defend", "use_item"}
+    if command not in valid_cmds:
+        raise InvalidCommandError(f"Unknown command: {command}")
+    if command == "move" and "dir" not in params:
+        raise InvalidParameterError("dir", "direction required")
+    if command == "attack":
+        dmg = params.get("damage", 0)
+        if not isinstance(dmg, int) or dmg < 5 or dmg > 200:
+            raise OutOfBoundsError(dmg, 5, 200)
+    return True
+
+def process_command(command, params):
+    """Process a validated command (stub for gaming logic)."""
+    print(f"Processed {command} with {params}")
+
+def main_processing_loop():
+    """Main loop that reads, validates and processes inputs."""
+    print("Starting dev-toolkit-35 game input loop")
+    while True:
+        try:
+            line = input("game> ").strip().lower()
+            if line == "quit":
+                break
+            tokens = line.split()
+            if not tokens:
+                continue
+            command = tokens[0]
+            params = {}
+            if len(tokens) > 1:
+                if command == "move":
+                    params["dir"] = tokens[1]
+                elif command == "attack":
+                    params["damage"] = int(tokens[1]) if tokens[1].isdigit() else 10
+                else:
+                    params["args"] = tokens[1:]
+            validate_input(command, params)
+            process_command(command, params)
+        except ValidationError as err:
+            print(f"Validation error: {err}")
+        except ValueError:
+            print("Invalid number format")
+        except EOFError:
+            break
+
+if __name__ == "__main__":
+    main_processing_loop()
