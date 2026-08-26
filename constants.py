@@ -1,34 +1,31 @@
-import time
-import random
+"""Gaming configuration constants for dev-toolkit-35."""
 
-MAX_RETRIES = 5
-DELAY = 2  # seconds
+from typing import Final, Dict, List
 
-class NetworkError(Exception):
-    pass
+# Maximum number of players allowed in a standard lobby session
+MAX_LOBBY_SIZE: Final[int] = 16
 
-def retry_on_failure(func):
+# Default network timeout duration measured in seconds
+DEFAULT_TIMEOUT: Final[float] = 5.0
+
+# Supported graphics rendering APIs for the game engine
+SUPPORTED_APIS: Final[List[str]] = ["DirectX12", "Vulkan", "OpenGL"]
+
+# Mapping of difficulty levels to enemy health multipliers
+DIFFICULTY_MULTIPLIERS: Final[Dict[str, float]] = {
+    "casual": 0.75,
+    "normal": 1.00,
+    "hardcore": 1.50,
+    "nightmare": 2.00,
+}
+
+def get_multiplier(difficulty: str) -> float:
+    """Retrieve the health multiplier for a given difficulty level.
+    
+    Args:
+        difficulty: The string identifier of the difficulty level.
+        
+    Returns:
+        The float multiplier associated with the difficulty, defaulting to normal (1.0).
     """
-    Decorator to retry a function call on failure.
-    """  
-    def wrapper(*args, **kwargs):
-        for attempt in range(MAX_RETRIES):
-            try:
-                return func(*args, **kwargs)
-            except NetworkError as e:
-                if attempt < MAX_RETRIES - 1:
-                    wait_time = DELAY + random.uniform(0, 1)  # jitter
-                    time.sleep(wait_time)
-                else:
-                    raise e  # re-raise the last exception
-    return wrapper
-
-@retry_on_failure
-def fetch_data_from_server(url):
-    """
-    Simulates a network operation to fetch data.
-    Raises NetworkError randomly to simulate failure.
-    """  
-    if random.random() < 0.7:  # 70% chance to fail
-        raise NetworkError('Failed to connect')
-    return { 'data': 'Sample data from {}'.format(url) }
+    return DIFFICULTY_MULTIPLIERS.get(difficulty.lower(), 1.0)
