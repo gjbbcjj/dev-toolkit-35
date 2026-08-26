@@ -1,51 +1,32 @@
-"""Helper functions for common gaming operations."""
-
-import math
 import random
-from typing import Tuple, List, Any
 
-def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> float:
-    """Calculate Euclidean distance between two points."""
-    dx = pos2[0] - pos1[0]
-    dy = pos2[1] - pos1[1]
-    return math.sqrt(dx * dx + dy * dy)
+def calculate_critical_hit(base_damage: float, crit_chance: float, crit_multiplier: float = 1.5) -> float:
+    """Calculate final damage considering critical hit chance and multiplier."""
+    if not (0.0 <= crit_chance <= 1.0):
+        raise ValueError("Crit chance must be between 0.0 and 1.0")
+    
+    is_crit = random.random() <= crit_chance
+    if is_crit:
+        return base_damage * crit_multiplier
+    return base_damage
 
-def clamp(value: float, min_val: float, max_val: float) -> float:
-    """Restrict value to the range [min_val, max_val]."""
-    return max(min_val, min(max_val, value))
+def interpolate_health(current_hp: float, target_hp: float, alpha: float) -> float:
+    """Smoothly interpolate health for UI health bar animations."""
+    alpha = max(0.0, min(1.0, alpha))
+    return current_hp + (target_hp - current_hp) * alpha
 
-def lerp(a: float, b: float, t: float) -> float:
-    """Linear interpolation from a to b by factor t."""
-    return a + (b - a) * t
-
-def weighted_choice(options: List[Tuple[Any, float]]) -> Any:
-    """Return random item weighted by second tuple element."""
-    total = sum(w for _, w in options)
-    r = random.random() * total
-    upto = 0.0
-    for item, weight in options:
-        if upto + weight >= r:
+def roll_loot_drop(loot_table: dict[str, float]) -> str | None:
+    """Determine item drop based on weighted probability table."""
+    total_weight = sum(loot_table.values())
+    if total_weight <= 0:
+        return None
+        
+    roll = random.uniform(0, total_weight)
+    current_weight = 0.0
+    
+    for item, weight in loot_table.items():
+        current_weight += weight
+        if roll <= current_weight:
             return item
-        upto += weight
-    return options[-1][0]
-
-def format_score(score: int) -> str:
-    """Return score as string with commas."""
-    return f"{score:,}"
-
-def get_exp_for_level(level: int) -> int:
-    """Compute experience needed for next level."""
-    return int(100 * level ** 1.5)
-
-def rects_overlap(r1: Tuple[float, float, float, float], r2: Tuple[float, float, float, float]) -> bool:
-    """Detect overlap of two rectangles (x, y, width, height)."""
-    x1, y1, w1, h1 = r1
-    x2, y2, w2, h2 = r2
-    return (x1 < x2 + w2 and x1 + w1 > x2 and
-            y1 < y2 + h2 and y1 + h1 > y2)
-
-def pick_event(events: List[str]) -> str:
-    """Select random event from list."""
-    if not events:
-        return ""
-    return random.choice(events)
+            
+    return None
