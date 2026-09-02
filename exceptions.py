@@ -1,69 +1,52 @@
-class ValidationError(Exception):
-    """Base class for input validation errors in gaming toolkit."""
-    pass
+import json
+import os
+from typing import Any, Dict, Optional
 
-class InvalidCommandError(ValidationError):
-    """Exception for unrecognized or malformed commands."""
-    pass
+class ConfigLoader:
+    def __init__(self, config_path: str, defaults: Optional[Dict[str, Any]] = None) -> None:
+        self.config_path = config_path
+        self.defaults = defaults or {}
+        self.config: Dict[str, Any] = self._load()
 
-class InvalidParameterError(ValidationError):
-    """Exception for invalid command parameters."""
-    def __init__(self, param, reason):
-        self.param = param
-        self.reason = reason
-        super().__init__(f"{param}: {reason}")
+    def _load(self) -> Dict[str, Any]:
+        config = self.defaults.copy()
+        if os.path.exists(self.config_path):
+            try:
+                with open(self.config_path, 'r', encoding='utf-8') as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict):
+                        config.update(loaded)
+            except (json.JSONDecodeError, IOError, OSError):
+                # fall back to defaults on error
+                config = self.defaults.copy()
+        return config
 
-class OutOfBoundsError(ValidationError):
-    """Exception for values outside allowed range."""
-    def __init__(self, value, minv, maxv):
-        self.value = value
-        super().__init__(f"{value} not in [{minv}, {maxv}]")
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
+        return self.config.get(key, default)
 
-def validate_input(command, params):
-    """Perform input validation for game commands."""
-    valid_cmds = {"move", "attack", "defend", "use_item"}
-    if command not in valid_cmds:
-        raise InvalidCommandError(f"Unknown command: {command}")
-    if command == "move" and "dir" not in params:
-        raise InvalidParameterError("dir", "direction required")
-    if command == "attack":
-        dmg = params.get("damage", 0)
-        if not isinstance(dmg, int) or dmg < 5 or dmg > 200:
-            raise OutOfBoundsError(dmg, 5, 200)
-    return True
+    def set(self, key: str, value: Any) -> None:
+        self.config[key] = value
 
-def process_command(command, params):
-    """Process a validated command (stub for gaming logic)."""
-    print(f"Processed {command} with {params}")
-
-def main_processing_loop():
-    """Main loop that reads, validates and processes inputs."""
-    print("Starting dev-toolkit-35 game input loop")
-    while True:
+    def save(self) -> None:
         try:
-            line = input("game> ").strip().lower()
-            if line == "quit":
-                break
-            tokens = line.split()
-            if not tokens:
-                continue
-            command = tokens[0]
-            params = {}
-            if len(tokens) > 1:
-                if command == "move":
-                    params["dir"] = tokens[1]
-                elif command == "attack":
-                    params["damage"] = int(tokens[1]) if tokens[1].isdigit() else 10
-                else:
-                    params["args"] = tokens[1:]
-            validate_input(command, params)
-            process_command(command, params)
-        except ValidationError as err:
-            print(f"Validation error: {err}")
-        except ValueError:
-            print("Invalid number format")
-        except EOFError:
-            break
+            with open(self.config_path, 'w', encoding='utf-8') as f:
+                json.dump(self.config, f, indent=4)
+        except (IOError, OSError):
+            pass  # or handle error, but for now
 
+    def reload(self) -> None:
+        self.config = self._load()
+
+# For gaming dev toolkit
 if __name__ == "__main__":
-    main_processing_loop()
+    default_settings = {
+        "window_width": 1280,
+        "window_height": 720,
+        "fps_limit": 60,
+        "sound_enabled": True,
+        "difficulty": "medium"
+    }
+    config = ConfigLoader("settings.json", default_settings)
+    print(config.get("fps_limit"))
+    config.set("difficulty", "hard")
+    config.save()
