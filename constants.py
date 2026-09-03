@@ -1,31 +1,26 @@
-"""Gaming configuration constants for dev-toolkit-35."""
-
 from typing import Final, Dict, List
 
-# Maximum number of players allowed in a standard lobby session
-MAX_LOBBY_SIZE: Final[int] = 16
+# Configuration constants for dev-toolkit-35
+MAX_RETRY_ATTEMPTS: Final[int] = 5
+DEFAULT_TIMEOUT: Final[float] = 30.5
 
-# Default network timeout duration measured in seconds
-DEFAULT_TIMEOUT: Final[float] = 5.0
+# Supported gaming platform identifiers
+SUPPORTED_PLATFORMS: Final[List[str]] = ['steam', 'epic', 'gog', 'origin']
 
-# Supported graphics rendering APIs for the game engine
-SUPPORTED_APIS: Final[List[str]] = ["DirectX12", "Vulkan", "OpenGL"]
-
-# Mapping of difficulty levels to enemy health multipliers
-DIFFICULTY_MULTIPLIERS: Final[Dict[str, float]] = {
-    "casual": 0.75,
-    "normal": 1.00,
-    "hardcore": 1.50,
-    "nightmare": 2.00,
+# Mapping for game resource status codes
+RESOURCE_STATUS_MAP: Final[Dict[int, str]] = {
+    200: 'READY',
+    202: 'PROCESSING',
+    404: 'NOT_FOUND',
+    500: 'SERVER_ERROR'
 }
 
-def get_multiplier(difficulty: str) -> float:
-    """Retrieve the health multiplier for a given difficulty level.
-    
-    Args:
-        difficulty: The string identifier of the difficulty level.
-        
-    Returns:
-        The float multiplier associated with the difficulty, defaulting to normal (1.0).
-    """
-    return DIFFICULTY_MULTIPLIERS.get(difficulty.lower(), 1.0)
+class EngineConstants:
+    """Container for engine-specific operational limits."""
+    FRAME_RATE_LIMIT: Final[int] = 144
+    MAX_TEXTURE_SIZE: Final[int] = 4096
+    DEFAULT_ENCODING: Final[str] = 'utf-8'
+
+def get_platform_timeout(platform: str) -> float:
+    """Return timeout duration for a given gaming platform."""
+    return DEFAULT_TIMEOUT if platform in SUPPORTED_PLATFORMS else 60.0
