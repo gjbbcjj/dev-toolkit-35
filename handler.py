@@ -1,63 +1,31 @@
 import time
-import random
-import requests
-from typing import Optional, Dict, Any
+import functools
+import logging
 
-def perform_with_retry(
-    url: str,
-    max_retries: int = 5,
-    backoff_factor: float = 1.0,
-    timeout: int = 10
-) -> Optional[Dict[str, Any]]:
-    """
-    Retry logic for network operations in gaming toolkit.
-    Handles transient failures when calling game servers.
-    """
-    headers = {"User-Agent": "dev-toolkit-35-gaming"}
+logger = logging.getLogger('dev-toolkit-35')
 
-    for attempt in range(max_retries):
-        try:
-            response = requests.get(url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.Timeout:
-            # Timeout is common in gaming due to server load
-            if attempt == max_retries - 1:
-                raise
-            wait = backoff_factor * (2 ** attempt) + random.uniform(0, 0.5)
-            time.sleep(wait)
-        except requests.exceptions.ConnectionError:
-            if attempt == max_retries - 1:
-                raise
-            wait = backoff_factor * (2 ** attempt) + random.uniform(0, 0.5)
-            time.sleep(wait)
-        except requests.exceptions.HTTPError as e:
-            # Don't retry on client errors like 404
-            if e.response.status_code in [400, 401, 403, 404]:
-                raise
-            if attempt == max_retries - 1:
-                raise
-            wait = backoff_factor * (2 ** attempt) + random.uniform(0, 0.5)
-            time.sleep(wait)
-        except Exception:
-            if attempt == max_retries - 1:
-                raise
-            wait = backoff_factor * (2 ** attempt) + random.uniform(0, 0.5)
-            time.sleep(wait)
-    return None
+def retry_network_op(retries=3, delay=1.0, backoff=2.0):
+    """Decorator for retrying network operations with exponential backoff."""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            current_delay = delay
+            for attempt in range(retries):
+                try:
+                    return func(*args, **kwargs)
+                except (ConnectionError, TimeoutError) as e:
+                    if attempt == retries - 1:
+                        logger.error(f'Operation failed after {retries} attempts')
+                        raise
+                    logger.warning(f'Attempt {attempt + 1} failed, retrying in {current_delay}s...')
+                    time.sleep(current_delay)
+                    current_delay *= backoff
+        return wrapper
+    return decorator
 
-# Helper to simulate or wrap for specific gaming ops
-def fetch_player_data(player_id: str) -> Optional[Dict[str, Any]]:
-    url = f"https://gaming-api.example.com/players/{player_id}"
-    return perform_with_retry(url, max_retries=4, backoff_factor=0.5)
-
-# Additional function for post operations if needed
-def send_game_event(event_data: Dict[str, Any]) -> bool:
-    # Example for posting, but using get for simplicity
-    # In real, implement post
-    url = "https://gaming-api.example.com/events"
-    try:
-        result = perform_with_retry(url, max_retries=3)
-        return result is not None
-    except:
-        return False
+@retry_network_op(retries=3, delay=2.0)
+def fetch_game_data(endpoint):
+    """Simulated network call to game server."""
+    # Example implementation for dev-toolkit-35
+    print(f'Fetching data from {endpoint}...')
+    return {'status': 'success', 'data': 'game_state_payload'}
