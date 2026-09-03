@@ -1,48 +1,71 @@
-from typing import List, Dict, Any
+import json
+import logging
+from typing import Dict, List, Any
 
-def calculate_player_stats(data: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Calculate key statistics from a list of gaming sessions."""
-    if not data:
-        return {"total_sessions": 0, "average_score": 0.0, "highest_score": 0, "top_player": None}
+logger = logging.getLogger("dev-toolkit-35")
 
-    total_sessions = len(data)
-    scores = [session.get("score", 0) for session in data]
-    average_score = sum(scores) / total_sessions if total_sessions > 0 else 0
-    highest_score = max(scores) if scores else 0
+class ProcessorError(Exception):
+    """Base exception for processor errors."""
+    pass
 
-    top_session = max(data, key=lambda x: x.get("score", 0))
-    top_player = top_session.get("player", "Unknown")
+class GameEventProcessor:
+    """Processes batch game events with robust error handling."""
 
-    return {
-        "total_sessions": total_sessions,
-        "average_score": round(average_score, 2),
-        "highest_score": highest_score,
-        "top_player": top_player
-    }
+    def __init__(self, strict_mode: bool = False):
+        self.strict_mode = strict_mode
 
-def filter_sessions_by_level(data: List[Dict[str, Any]], min_level: int) -> List[Dict[str, Any]]:
-    """Filter sessions to those at or above the given level."""
-    return [session for session in data if session.get("level", 0) >= min_level]
+    def process_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        """Processes a single game event, validating key fields."""
+        if not isinstance(event, dict):
+            raise ProcessorError("Event data must be a dictionary")
 
-def aggregate_gaming_data(data: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Process raw gaming data into useful aggregates."""
-    stats = calculate_player_stats(data)
-    high_level_sessions = filter_sessions_by_level(data, 5)
-    stats["high_level_count"] = len(high_level_sessions)
-    if high_level_sessions:
-        avg = sum(s.get("score", 0) for s in high_level_sessions) / len(high_level_sessions)
-        stats["high_level_avg_score"] = round(avg, 2)
-    else:
-        stats["high_level_avg_score"] = 0
-    return stats
+        event_id = event.get("event_id")
+        event_type = event.get("type")
 
-if __name__ == "__main__":
-    sample_data = [
-        {"player": "Alice", "score": 1500, "level": 5},
-        {"player": "Bob", "score": 1200, "level": 3},
-        {"player": "Charlie", "score": 1800, "level": 7},
-        {"player": "Diana", "score": 950, "level": 4},
-        {"player": "Alice", "score": 1650, "level": 6}
-    ]
-    processed = aggregate_gaming_data(sample_data)
-    print(processed)
+        if not event_id or not event_type:
+            raise ProcessorError("Missing required fields: event_id or type")
+
+        try:
+            if event_type == "score_update":
+                score = int(event.get("score", 0))
+                if score < 0:
+                    raise ValueError("Score cannot be negative")
+                return {"event_id": event_id, "status": "processed", "score": score}
+
+            elif event_type == "item_purchase":
+                item_id = event.get("item_id")
+                cost = float(event.get("cost", 0.0))
+                if not item_id or cost < 0:
+                    raise ValueError("Invalid item_id or cost")
+                return {"event_id": event_id, "status": "processed", "item_id": item_id}
+
+            else:
+                raise ValueError(f"Unknown event type: {event_type}")
+
+        except (ValueError, TypeError) as e:
+            if self.strict_mode:
+                raise ProcessorError(f"Validation failed: {str(e)}") from e
+            logger.warning(f"Skipping event {event_id}: {str(e)}")
+            return {"event_id": event_id, "status": "failed", "reason": str(e)}
+
+    def process_batch(self, events_json: str) -> List[Dict[str, Any]]:
+        """Parses and processes a JSON string representing a batch of events."""
+        processed_results = []
+        try:
+            events = json.loads(events_json)
+            if not isinstance(events, list):
+                raise ProcessorError("Batch data must be a list of events")
+        except json.JSONDecodeError as e:
+            raise ProcessorError(f"Invalid JSON format: {str(e)}") from e
+
+        for index, event in enumerate(events):
+            try:
+                result = self.process_event(event)
+                processed_results.append(result)
+            except ProcessorError as e:
+                if self.strict_mode:
+                    raise
+                logger.error(f"Error processing index {index}: {str(e)}")
+                processed_results.append({"index": index, "status": "error", "reason": str(e)})
+
+        return processed_results
