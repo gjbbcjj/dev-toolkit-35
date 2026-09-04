@@ -1,27 +1,29 @@
 import re
 
-class InputValidator:
-    def __init__(self):
-        self.patterns = {
-            'username': re.compile(r'^[a-zA-Z0-9_]{3,15}$'),
-            'email': re.compile(r'^[\w\.-]+@[\w\.-]+\.\w+$'),
-            'password': re.compile(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$')
-        }
 
-    def validate_username(self, username):
-        return bool(self.patterns['username'].match(username))
+def validate_player_id(player_id: str) -> bool:
+    """Checks if the player id follows gaming platform standard."""
+    pattern = r'^[a-zA-Z0-9_-]{3,16}$'
+    return bool(re.match(pattern, player_id))
 
-    def validate_email(self, email):
-        return bool(self.patterns['email'].match(email))
 
-    def validate_password(self, password):
-        return bool(self.patterns['password'].match(password))
+def validate_game_config(config: dict) -> bool:
+    """Ensures required configuration keys are present."""
+    required = {'server_region', 'max_players', 'tick_rate'}
+    return required.issubset(config.keys())
 
-    def validate_all(self, username, email, password):
-        return (self.validate_username(username) and
-                self.validate_email(email) and
-                self.validate_password(password))
 
-# Usage Example:
-# validator = InputValidator()
-# print(validator.validate_all('user_123', 'user@example.com', 'password1'))  # True
+def validate_coordinate_bounds(x: float, y: float, limit: float) -> bool:
+    """Verifies world position stays within map boundaries."""
+    return abs(x) <= limit and abs(y) <= limit
+
+
+def sanitize_chat_input(message: str) -> str:
+    """Removes potential injection characters from input strings."""
+    # Simple stripping of control characters
+    return re.sub(r'[\x00-\x1f\x7f]', '', message).strip()[:256]
+
+
+def validate_session_token(token: str) -> bool:
+    """Validates format of session authentication tokens."""
+    return len(token) == 64 and token.isalnum()
